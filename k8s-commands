@@ -1,0 +1,61 @@
+kubeadm init                                              	    # Initialize your master node
+kubeadm join --token <token> <master-ip>:<master-port>    	    # Join a node to your Kubernetes cluster
+kubeadm reset                                             	    # Reset current state
+kubectl version                         			    # Get version information
+kubectl cluster-info              				    # Get cluster information
+kubectl config view               				    # Get the configuration
+kubectl create namespace <namespace>                      	    # Create namespace <name>
+kubectl taint nodes --all node-role.kubernetes.io/master- 	    # Allow Kubernetes master nodes to run pods
+kubectl taint nodes <node01> dedicated=special-user:NoSchedule      # Update node <node01> with a taint with key 'dedicated' and value 'special-user' and effect 'NoSchedule'. If a taint with that key and effect already exists, its value is replaced as specified.
+kubectl taint nodes <node01> dedicated:NoSchedule-		    # Remove from node <node01> the taint with key 'dedicated' and effect 'NoSchedule' if one exists.
+kubectl cordon foo						    # Mark node as unschedulable.
+kubectl uncordon foo						    # Mark node "foo" as schedulable.
+
+kubectl get services              				    # List all services 
+kubectl get pods                  				    # List all pods
+kubectl get nodes -w               				    # Watch nodes continuously
+kubectl describe node <node>        				    # Output information about a node
+kubectl get pods                         			    # List the current pods
+kubectl describe pod <name>              			    # Describe pod <name>
+kubectl get rc                         				    # List the replication controllers
+kubectl get rc --namespace="<namespace>" 			    # List the replication controllers in <namespace>
+kubectl describe rc <name>               			    # Describe replication controller <name>
+kubectl get svc                          			    # List the services
+kubectl describe svc <name>              			    # Describe service <name>
+
+kubectl run <name> --image=<image-name>                             # Launch a pod called <name> using image <image-name> 
+kubectl create -f <manifest.yaml>                                   # Create a service described in <manifest.yaml>
+kubectl scale --replicas=<count> rc <name>                          # Scale replication controller <name> to <count> instances
+kubectl expose rc <name> --port=<external> --target-port=<internal> # Map port <external> to port <internal> on replication controller <name>
+kubectl delete pod <name>                                           # Delete pod <name>
+kubectl delete rc <name>                                            # Delete replication controller <name>
+kubectl delete svc <name>                                           # Delete service <name>
+kubectl drain <node01> --delete-local-data --force --ignore-daemonsets   # Stop all pods on <node01>
+kubectl drain <node01> --grace-period=900				 # Stop all pods on <node01> with a grace period of 15 minutes.
+kubectl delete node <name>                                          # Remove <node> from the cluster
+kubectl exec <service> <command> [-c <$container>] 		    # execute <command> on <service>, optionally selecting container <$container>
+kubectl logs -f <name> [-c <$container>]           		    # Get logs from service <name>, optionally selecting container <$container>
+watch -n 2 cat /var/log/kublet.log                		    # Watch the Kublet logs
+kubectl top node                                  		    # Show metrics for nodes
+kubectl top pod                                   		    # Show metrics for pods
+
+kubectl get secrets      					    # List all secrets
+kubectl apply -f ./pod.json					    # Apply a configuration to a resource by filename or stdin
+kubectl annotate pods foo description='my frontend'                 # Update the annotations on one or more resources
+kubectl convert -f pod.yaml					    # Convert config files between different API versions. Both YAML and JSON formats are accepted.
+kubectl diff -f pod.json 					    # Diff configurations specified by filename or stdin between the current online configuration, and the configuration as it would be if applied.
+kubectl edit deployment/mydeployment -o yaml --save-config	    # Edit the deployment 'mydeployment' in YAML and save the modified config in its annotation
+kubectl label pods foo unhealthy=true				    # Update pod 'foo' with the label 'unhealthy' and the value 'true'.
+kubectl label --overwrite pods foo status=unhealthy	            # Update pod 'foo' with the label 'status' and the value 'unhealthy', overwriting any existing value.
+kubectl label pods foo bar-					    # Update pod 'foo' by removing a label named 'bar' if it exists. Does not require the --overwrite flag.
+kubectl set image deployment/nginx busybox=busybox nginx=nginx:1.9.1# Set a deployment's nginx container image to 'nginx:1.9.1', and its busybox container image to 'busybox'.
+kubectl rollout status daemonset/foo				    # Check the rollout status of a daemonset
+kubectl rollout history daemonset/abc --revision=3		    # View the details of daemonset revision 3
+
+kubectl attach 123456-7890 -c ruby-container -i -t	            # Switch to raw terminal mode, sends stdin to 'bash' in ruby-container from pod 123456-7890 # and sends stdout/stderr from 'bash' back to the client
+kubectl auth can-i create pods --all-namespaces	    		    # Check to see if I can create pods in any namespace
+kubectl auth can-i --list --namespace=foo			    # List all allowed actions in namespace "foo"
+kubectl auth reconcile -f my-rbac-rules.yaml			    # Reconciles rules for RBAC Role, RoleBinding, ClusterRole, and ClusterRole binding objects from a file
+kubectl cp /tmp/foo_dir <some-pod>:/tmp/bar_dir			    # Copy /tmp/foo_dir local directory to /tmp/bar_dir in a remote pod in the default namespace
+kubectl cp /tmp/foo <some-pod>:/tmp/bar -c <specific-container>     # Copy /tmp/foo local file to /tmp/bar in a remote pod in a specific container
+

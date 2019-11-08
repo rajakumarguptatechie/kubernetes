@@ -1,0 +1,116 @@
+!!!SYSTEM SPECIFICATIONS!!!
+OS: Ubuntu 16.04LTS/18.04LTS
+CPU: 2 Core (Minimum recommended)
+RAM: 2GB (Minimum recommended)
+
+###Manager Node###
+Step 1: Prepare necessary steps
+a. Change to root
+# sudo su
+b. Turn off swap
+# swapoff -a
+c. Edit the swap config
+# vi /etc/fstab (Comment the swap line)
+d. Configure iptable
+# vi /etc/ufw/sysctl.conf (Add following lines to the end)
+net/bridge/bridge-nf-call-ip6tables = 1
+net/bridge/bridge-nf-call-iptables = 1
+net/bridge/bridge-nf-call-arptables = 1
+e. Reboot for changes
+# reboot
+f. Install dependency
+# sudo su
+# apt-get install ebtables ethtool
+g. Reboot again
+# reboot
+
+Step 2: Install kubeadm, Kubelet, Kubectl and Docker
+a. Change to root
+# sudo su
+b. Install https support
+# apt-get update && apt-get install -y apt-transport-https
+c. Get kubernetes repo key
+# curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+d. Add kubernetes repo to manifest
+# cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
+deb http://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+e. Install kubeadm and docker
+# apt-get update && apt-get install -y kubelet kubeadm kubectl docker.io
+
+Step 3: Create the cluster
+a. Change to root
+# sudo su
+b. Initialize the kubeadm
+# kubeadm init --pod-network-cidr=192.168.0.0/16
+Note: If Docker service is dead due to MASKING, please run below commands and the initialize Kubeadm.
+sudo systemctl unmask docker.service
+sudo systemctl unmask docker.socket
+sudo systemctl start docker.service
+sudo systemctl status docker
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+YOU WILL GET BELOW MESSAGE AFTER SUCCESSFUL INITIALIZATION .
+Your Kubernetes control-plane has initialized successfully!
+To start using your cluster, you need to run the following as a regular user:
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+Then you can join any number of worker nodes by running the following on each as root:
+kubeadm join 192.168.1.2:6443 --token 8o4g4e.88vqs3sm9iwn3gnj --discovery-token-ca-cert-hash ha256:693b6cf92fb196f11729a1ffe1acbd6b7b8b3fb413ab38f3c72a783191138ba6
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+c. Change to regular user
+# exit
+d. Copy kubectl config
+# mkdir -p $HOME/.kube
+# sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+# sudo chown $(id -u):$(id -g) $HOME/.kube/config
+e. Install network plugin (Calico)
+$ kubectl apply -f https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/rbac-kdd.yaml
+$ kubectl apply -f "<https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')>"
+f. Allow below ports
+# ufw allow 6443	  #(Purpose: Kube-API-server & usedBy: All)
+# ufw allow 10251 	  #(Purpose: Kube-Scheduler & usedBy: Self)
+# ufw allow 10252 	  #(Purpose: Kubelet-Controller-Manager & usedBy: Self)
+# ufw allow 2379:2380/tcp #(Purpose: etcd-server-client-API & usedBy: apiserver, etcd)
+# ufw allow 10250 	  #(Purpose: KubeletAPI & usedBy: Self, ControlPlane)
+g. Run few commands to check k8s is working
+# kubectl get node -n kube-system
+# kubectl get services -n kube-system
+
+Step 4. Trouble shooting
+a. If found the core dns is always crashed like that
+$ kubectl get pod -n kube-system
+NAME                                      READY     STATUS             RESTARTS   AGE
+coredns-86c58d9df4-hrp2w                  0/1       CrashLoopBackOff   542        1d
+coredns-86c58d9df4-ptgsk                    0/1       CrashLoopBackOff   543        1d
+b. You need to manually delete the config in /etc/resolv.conf and create new one
+nameserver 8.8.4.4
+nameserver 8.8.8.8
+Then the DNS service in the cluster is working normally.
+
+###Worker Node###
+Step 1: Install kubeadm, Kubelet, Kubectl and Docker
+a. Change to root
+# sudo su
+b. Install https support
+# apt-get update && apt-get install -y apt-transport-https
+c. Get kubernetes repo key
+# curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+d. Add kubernetes repo to manifest
+# cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
+deb http://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+e. Install kubeadm and docker
+# apt-get update && apt-get install -y kubelet kubeadm kubectl docker.io
+
+Step 2: Join Worker in cluster
+a. Run below command (This command was generated while intilializing Kubeadm)
+# kubeadm join 192.168.1.2:6443 \
+--token 8o4g4e.88vqs3sm9iwn3gnj \
+--discovery-token-ca-cert-hash  sha256:693b6cf92fb196f11729a1ffe1acbd6b7b8b3fb413ab38f3c72a783191138ba6
+b. Allow below ports
+ # ufw allow 10250           #(Purpose: KubeletAPI & usedBy: Self, ControlPlane)
+ # ufw allow 30000:32767/tcp #(Purpose: NodePort Services & usedBy: All)
