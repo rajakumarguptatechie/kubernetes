@@ -1,0 +1,13 @@
+## List at job
+# kubectl get jobs
+
+## List cronjob
+# kubectl get cronjobs
+
+## Edit cronjobs
+# kubectl edit cronjobs/<cronjob-name>
+
+## See logs of pod corresponding to jobs
+# kubectl get pods --show-all
+# kubectl logs <job-pod-name>
+
