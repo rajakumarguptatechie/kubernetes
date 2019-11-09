@@ -15,6 +15,11 @@ kubectl taint nodes node1 key2=value2:NoSchedule
 # kubectl taint nodes node-name key=value:effect
 # kubectl taint nodes node-name infra=special:NoSchedule
 
+
+## Untaint
+# kubectl taint nodes node-name key-
+# kubectl taint nodes node-name infra-
+
 ## Toleration for pods
 tolerations:
 - key: "key1"

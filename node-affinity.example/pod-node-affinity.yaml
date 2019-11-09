@@ -9,8 +9,5 @@ spec:
   - name: nginx
     image: nginx
     imagePullPolicy: IfNotPresent
-  tolerations:
-  - key: "typeofnode"
-    operator: "Equal"
-    value: "special-node"
-    effect: "NoSchedule"
+  nodeSelector:
+    disktype: ssd
